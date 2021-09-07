@@ -1,1 +1,1 @@
-web: java $JAVA_OPTS -cp target/classes:target/dependency/* co.edu.escuelaing.HttpServer
+web: java $JAVA_OPTS -cp target/classes:target/dependency/* edu.escuelaing.HttpServer

@@ -1,8 +1,9 @@
-var imgs = ['img/yoda.jpg','img/among.jpg','img/halo.jpg'];
+var imgs = ['yoda.jpg','among.jpg','halo.jpg'];
 var rotacion = 0;
 
 function actualizar(){
-    $("#imagen").attr("src",imgs[rotacion]);
+    var image = document.getElementById('imagen');
+    image.src = imgs[rotacion];
 }
 
 function cambiarImagen(){
@@ -12,10 +13,3 @@ function cambiarImagen(){
 	}
     actualizar();
 }
-
-$(document).ready(function(){
-	actualizar();
-	$("#cambiarImagen").click(function(){
-		cambiarImagen();
-	});
-});
