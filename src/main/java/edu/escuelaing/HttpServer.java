@@ -3,10 +3,18 @@ package edu.escuelaing;
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
+
+import javax.imageio.ImageIO;
+import javax.xml.crypto.dsig.spec.ExcC14NParameterSpec;
 
 public class HttpServer {
     private static final HttpServer _instance = new HttpServer();
-    private static final String HTTP_MESSAGE = "HTTP/1.1 200 OK\n"
+    private static final HashMap<String,String> contentType = new HashMap<String,String>();
+
+   /* private static final String HTTP_MESSAGE = "HTTP/1.1 200 OK\n"
                                                 + "Content-Type: text/html\r\n"
                                                 + "\r\n";
     private static final String JAVA_MESSAGE = "HTTP/1.1 200 OK\n"
@@ -14,14 +22,24 @@ public class HttpServer {
                                                 + "\r\n";
     private static final String CSS_MESSAGE = "HTTP/1.1 200 OK\n"
                                                 + "Content-Type: text/css\r\n"
-                                                + "\r\n";
+                                                + "\r\n";*/
     public static HttpServer getInstance(){
+        contentType.put("html","text/html");
+        contentType.put("css","text/css");
+		contentType.put("js","text/javascript");
+
+		contentType.put("jpeg","image/jpeg");
+		contentType.put("jpg","image/jpg");
+		contentType.put("png","image/png");
+		contentType.put("ico","image/vnd.microsoft.icon");
         return _instance;
     }
 
-    private HttpServer(){}
+    private HttpServer(){
+        
+    }
 
-    public void start(String[] args) throws IOException{
+    public void start() throws IOException{
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(35000);
@@ -50,7 +68,8 @@ public class HttpServer {
     }
 
     public void serverConnection(Socket clientSocket) throws IOException, URISyntaxException {
-        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        OutputStream outStream=clientSocket.getOutputStream();
+		PrintWriter out = new PrintWriter(outStream, true);
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(
                         clientSocket.getInputStream()));
@@ -60,41 +79,45 @@ public class HttpServer {
         
 
         while ((inputLine = in.readLine()) != null) {
-                if(inputLine.contains("GET /app.js")){
-                    sv="js";
-                }else if(inputLine.contains("GET /index.html")){
-                    sv="html";
-                }else if(inputLine.contains("GET /style.css")){
-                    sv="css";
-                }
             System.out.println("Received: " + inputLine);
             request.add(inputLine);
             if (!in.ready()) {
                 break;
             }
         }
-        outputLine = getResource( sv);
+
+        String uriContentType="";
+		String uri="";
+		try {
+			
+			uriContentType=request.get(0).split(" ")[1];
+
+            URI resource = new URI(uriContentType);
+			
+			uri=resource.getPath().split("/")[1];
+        }catch(Exception e){
+            System.out.println(e);
+        }
+        outputLine = getResource( uri, outStream);
         out.println(outputLine);
         out.close();
         in.close();
         clientSocket.close();
     }
-    public String getResource( String sv) throws URISyntaxException{
-        if(sv == "js"){
-            return computeJSResponse();
-        }else if(sv == "html"){
-            return computeHTMLResponse();
-        }else if(sv == "css"){
-            return computeCSSResponse();
+    public String getResource( String uri, OutputStream outStream) throws URISyntaxException{
+        if(uri.contains("jpg") || uri.contains("jpeg")){
+            return computeImageResponse(uri, outStream);
+        }else{
+            return computeContentResponse(uri);
         }
-       return null;
     }
 
-    public String computeHTMLResponse(){
-        String content = HTTP_MESSAGE;
-        System.out.println("HTML");
-        File file = new File("arep/src/main/resources/public/index.html");
-
+    public String computeContentResponse(String uriContentType){
+        String extensionUri = uriContentType.substring(uriContentType.lastIndexOf(".") + 1);
+        String content = "HTTP/1.1 200 OK \r\n" 
+                            + "Content-Type: "+ contentType.get(extensionUri) + "\r\n"
+                            + "\r\n";
+        File file = new File("arep/src/main/resources/public/"+uriContentType);
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
@@ -106,31 +129,25 @@ public class HttpServer {
         }
         return content;
     }
-    public String computeJSResponse(){
-        String content = JAVA_MESSAGE;
-        System.out.println("JS");
-        File file = new File("arep/src/main/resources/public/app.js");
+
+    public String computeImageResponse(String uriImgType, OutputStream outStream){
+        uriImgType=uriImgType.replace("/img","");
         
+        String extensionUri = uriImgType.substring(uriImgType.lastIndexOf(".") + 1);
+
+        String content = "HTTP/1.1 200 OK \r\n" 
+                            + "Content-Type: "+ contentType.get(extensionUri) + "\r\n"
+                            + "\r\n";
+        System.out.println("uriImgType " + uriImgType);
+        File file = new File("arep/src/main/resources/public/img/"+uriImgType);
+        System.out.println("file "+file);
         try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
-            while((line =  br.readLine()) != null) content += line; 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println(content);
-        return content;
-    }
-    public String computeCSSResponse(){
-        String content = CSS_MESSAGE;
-        System.out.println("CSS");
-        File file = new File("arep/src/main/resources/public/style.css");
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
-            while((line =  br.readLine()) != null) content += line; 
+            BufferedImage bi = ImageIO.read(file);
+            ByteArrayOutputStream byteArrayOutputStream=new ByteArrayOutputStream();
+            DataOutputStream dataOutputStream= new DataOutputStream(outStream); 
+            ImageIO.write(bi, extensionUri, byteArrayOutputStream);
+            dataOutputStream.writeBytes(content);
+            dataOutputStream.write(byteArrayOutputStream.toByteArray());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -157,6 +174,6 @@ public class HttpServer {
         return outputLine;
     }
     public static void main(String[] args) throws IOException {
-        HttpServer.getInstance().start(args);
+        HttpServer.getInstance().start();
     }
 }
