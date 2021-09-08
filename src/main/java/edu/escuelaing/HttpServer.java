@@ -13,16 +13,6 @@ import javax.xml.crypto.dsig.spec.ExcC14NParameterSpec;
 public class HttpServer {
     private static final HttpServer _instance = new HttpServer();
     private static final HashMap<String,String> contentType = new HashMap<String,String>();
-
-   /* private static final String HTTP_MESSAGE = "HTTP/1.1 200 OK\n"
-                                                + "Content-Type: text/html\r\n"
-                                                + "\r\n";
-    private static final String JAVA_MESSAGE = "HTTP/1.1 200 OK\n"
-                                                + "Content-Type: text/javascript\r\n"
-                                                + "\r\n";
-    private static final String CSS_MESSAGE = "HTTP/1.1 200 OK\n"
-                                                + "Content-Type: text/css\r\n"
-                                                + "\r\n";*/
     public static HttpServer getInstance(){
         contentType.put("html","text/html");
         contentType.put("css","text/css");
@@ -117,7 +107,7 @@ public class HttpServer {
         String content = "HTTP/1.1 200 OK \r\n" 
                             + "Content-Type: "+ contentType.get(extensionUri) + "\r\n"
                             + "\r\n";
-        File file = new File("src/main/resources/public/"+uriContentType);
+        File file = new File("TALLER-CLIENTES-Y-SERVICIOS-AREP/src/main/resources/public/"+uriContentType);
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
@@ -139,7 +129,7 @@ public class HttpServer {
                             + "Content-Type: "+ contentType.get(extensionUri) + "\r\n"
                             + "\r\n";
         System.out.println("uriImgType " + uriImgType);
-        File file = new File("src/main/resources/public/img/"+uriImgType);
+        File file = new File("TALLER-CLIENTES-Y-SERVICIOS-AREP/src/main/resources/public/img/"+uriImgType);
         System.out.println("file "+file);
         try {
             BufferedImage bi = ImageIO.read(file);
