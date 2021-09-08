@@ -107,7 +107,7 @@ public class HttpServer {
         String content = "HTTP/1.1 200 OK \r\n" 
                             + "Content-Type: "+ contentType.get(extensionUri) + "\r\n"
                             + "\r\n";
-        File file = new File("TALLER-CLIENTES-Y-SERVICIOS-AREP/src/main/resources/public/"+uriContentType);
+        File file = new File("src/main/resources/public/"+uriContentType);
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             String line;
@@ -129,7 +129,7 @@ public class HttpServer {
                             + "Content-Type: "+ contentType.get(extensionUri) + "\r\n"
                             + "\r\n";
         System.out.println("uriImgType " + uriImgType);
-        File file = new File("TALLER-CLIENTES-Y-SERVICIOS-AREP/src/main/resources/public/img/"+uriImgType);
+        File file = new File("src/main/resources/public/img/"+uriImgType);
         System.out.println("file "+file);
         try {
             BufferedImage bi = ImageIO.read(file);
